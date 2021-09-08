@@ -13,7 +13,7 @@ def readPeak(file, thresh=0):
     name, start, end, abs_summit, fold_enrichment
     name, start, end, abs_summit, fold_enrichment_A, fold_enrichment_B
     name, start, end, log10_likely (of the peak presented in this file)
-    thresh is the threshold of the -LOG10(pvalue)
+    thresh is the threshold of the -log10(pvalue)
     '''
     if file.endswith('.xls'):
         # direct peak calling result
@@ -21,10 +21,10 @@ def readPeak(file, thresh=0):
             file, delimiter='\t',
             comment='#', index_col='name',
             usecols=[
-                'name', 'start', 'end', 'abs_summit','-LOG10(pvalue)', 'fold_enrichment'
+                'name', 'start', 'end', 'abs_summit','-log10(pvalue)', 'fold_enrichment'
                 ]
             )
-        data = data[data['-LOG10(pvalue)']>=thresh]
+        data = data[data['-log10(pvalue)']>=thresh]
     elif file.endswith('.bed'):  # different peaks called by Macs2
         data = pd.read_csv(file, delimiter='\t', skiprows=1,
                            header=None, usecols=[1, 2, 3, 4], index_col=2)
@@ -40,7 +40,7 @@ def readPeak(file, thresh=0):
             cols = ['name', 'start', 'end', 'abs_summit',
                     'fold_enrichment_A', 'fold_enrichment_B']
         else:
-            cols = ['name', 'start', 'end', 'abs_summit','-LOG10(pvalue)', 'fold_enrichment']
+            cols = ['name', 'start', 'end', 'abs_summit','-log10(pvalue)', 'fold_enrichment']
         data = pd.read_csv(file, delimiter='\t',
                            usecols=cols,
                            index_col='name')

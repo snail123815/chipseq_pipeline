@@ -349,11 +349,11 @@ def filterLikely(peakDF, method):
             raise Exception(
                 'Threshold error, for unique peaks, the value should be the bigger the better, set up a big value >=10')
         filtered = peakDF.query('log10_likely >= @thresh')
-    elif '-LOG10(pvalue)' in peakDF.columns:
+    elif '-log10(pvalue)' in peakDF.columns:
         if thresh < 10:
             raise Exception(
                 'Threshold error, for peaks, the value should be the bigger the better, set up a big value >=10')
-        filtered = peakDF.query('-LOG10(pvalue) >= @thresh')
+        filtered = peakDF.query('`-log10(pvalue)` >= @thresh')
         
     else:
         raise Exception(

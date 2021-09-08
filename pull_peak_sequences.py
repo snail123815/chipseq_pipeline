@@ -134,7 +134,9 @@ def singleFilter(filter, method, filename):
         from funcs import evenLengthAroundSummit as filterFunction
 
     elif filter == 'likely':
-        if type(method) not in [int, float]:
+        try:
+            method = float(method)
+        except:
             raise Exception(
                 f"Method error. For {filter} in {filename} you should use a number, not {method}")
         from funcs import filterLikely as filterFunction
@@ -160,13 +162,15 @@ def addTitle(filtered, title, filter, method):
     elif filter == 'fold' and not methodIsList:
         threshFold = int(filtered.fold_enrichment.min())
         title = f"{title}_{threshFold}"
+    elif filter == 'likely':
+        title = f'{title}_{method}'
     else:
         raise NameError(f'Non-supported filter {filter}, method {method}')
     return title
 # addTitle
 
 # Main function:
-def pullPeakSequences(genomeFile, file, 
+def pullPeakSequences(genomeFile, file, output,
                       filter=None, method=None, 
                       multiFilter=False, multiFilterMethods=None):
 
@@ -175,7 +179,7 @@ def pullPeakSequences(genomeFile, file,
     print('*' * 100)
     print(file)
 
-    if not multiFilter:
+    if multiFilter:
         filtered = peakDF.copy()
         for i, filter in enumerate(multiFilter):
             filterFunction, method = singleFilter(
@@ -196,7 +200,13 @@ def pullPeakSequences(genomeFile, file,
             raise Exception(
                 f'some thing wrong with \n{index}\n{filtered.loc[index,:]}')
 
-    genome = SeqIO.read(genomeFile, 'genbank')
+    ext = os.path.splitext(genomeFile)[1]
+    if ext[1:] in ['gb', 'genbank', 'gff']:
+        genome = SeqIO.read(genomeFile, 'genbank')
+    elif ext[1:] in ['fa', 'fasta', 'faa']:
+        genome = SeqIO.read(genomeFile, 'fasta')
+    else:
+        raise NameError(genomeFile, ext)
 
     if multiFilter == False:
         title = addTitle(filtered, title, filter, method)
@@ -205,16 +215,14 @@ def pullPeakSequences(genomeFile, file,
             title = addTitle(filtered, title, filter, multiFilterMethods[i])
 
     print(f'Output file {title}_seqs.fasta')
-    outputFile = f'/Users/durand.dc/Desktop/ChIP1839/peak_calling/{title}_seqs.fasta'
-    if os.path.isfile(outputFile):
+    if os.path.isfile(output):
         print(f'The result file exists for {filter} | {method}, skip.')
     else:
         peakSeqs = getSeq(genome, peakPositions)
         SeqIO.write(peakSeqs,
-                    f'/Users/durand.dc/Desktop/ChIP1839/peak_calling/{title}_seqs.fasta',
+                    output,
                     'fasta')
-    outputTable = f'/Users/durand.dc/Desktop/ChIP1839/peak_calling/{title}_seqs.xlsx'
-    print(f'Output table {title}_seqs.xlsx')
+    outputTable = f'{output}.xlsx'
     if os.path.isfile(outputTable):
         print(f'The result file exists for {filter} | {method}, skip.')
     else:
@@ -264,16 +272,19 @@ if __name__ == '__main__':
                     'likely': [1, 100],
                     'none': [None]}
      ''')
-
+    parser.add_argument('-o', help='output path')
     parser.add_argument('--likely', help='threshold for filter "likely"')
-    
-
 
     args = parser.parse_args()
     genome = args.genome
     files = args.files
     fm = args.filter
     fmlikely = args.likely
+    outputPath = args.o
+
+    if not os.path.isdir(outputPath):
+        os.makedirs(outputPath)
     
     for file in files:
-        pullPeakSequences(genome, file, filter=fm, method=fmlikely)
+        output = os.path.join(outputPath, f'{os.path.splitext(os.path.split(file)[1])[0]}.fa')
+        pullPeakSequences(genome, file, output, filter=fm, method=fmlikely)

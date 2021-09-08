@@ -4,7 +4,7 @@ import os
 import concurrent.futures 
 import sys  # for error handling
 
-from funcs import findSpan 
+from funcs import getSpanFetures 
 import pandas as pd
 
 
@@ -51,18 +51,17 @@ def readPeak(file, thresh=150):
     return data
 
 
-def slice(sourceSeq, peakDict, peak):
-    # peak passed here is to get the name of the seq
-    start, end = peakDict[peak]
+def slice(sourceSeq, location, id=None):
+    #start, end = peakDict[peak]
+    start, end = location
     try:
         sliceFull = sourceSeq[start:end]
     except:
         print(sys.exc_info()[0])
-        print(peak)
-        print(peakDict[peak])
         print(start, end)
         exit()
-    sliceFull.features.extend(findSpan(sourceSeq, start, end))
+    # Expand features if the cut location is inside features
+    sliceFull.features.extend(getSpanFetures(sourceSeq, start, end))
     descrip = []
     if len(sliceFull.features) > 0:
         for feat in sliceFull.features:
@@ -72,7 +71,10 @@ def slice(sourceSeq, peakDict, peak):
                 except:
                     pass
     sliceSeq = SeqRecord(sourceSeq.seq[start:end])
-    sliceSeq.id = peak
+    if isinstance(id, type(None)):
+        sliceSeq.id = f'{sourceSeq.id}_{start}-{end}'
+    else:
+        sliceSeq.id = id
     sliceSeq.description = '-'.join(descrip).replace(' ', '_')
     return sliceSeq
 # slice

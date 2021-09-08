@@ -4,24 +4,28 @@ import os
 import concurrent.futures 
 import sys  # for error handling
 
-
-from peak_enrichment_modeling import peakFiles, peakLengthAtLoc
-from funcs import findSpan, findStartLine, turning_points, minMaxPolyfit
+from funcs import findSpan 
 import pandas as pd
 
 
-def readPeak(file):
+def readPeak(file, thresh=150):
     ''' Three kind of dataframe generated
     name, start, end, abs_summit, fold_enrichment
     name, start, end, abs_summit, fold_enrichment_A, fold_enrichment_B
     name, start, end, log10_likely (of the peak presented in this file)
+    thresh is the threshold of the -LOG10(pvalue)
     '''
     if file.endswith('.xls'):
         # direct peak calling result
-        data = pd.read_csv(file, delimiter='\t',
-                           skiprows=findStartLine(file), index_col='name',
-                           usecols=['name', 'start', 'end', 'abs_summit', 'fold_enrichment'])
-    if file.endswith('.bed'):  # different peaks called by Macs2
+        data = pd.read_csv(
+            file, delimiter='\t',
+            comment='#', index_col='name',
+            usecols=[
+                'name', 'start', 'end', 'abs_summit','-LOG10(pvalue)', 'fold_enrichment'
+                ]
+            )
+        data = data[data['-LOG10(pvalue)']>=thresh]
+    elif file.endswith('.bed'):  # different peaks called by Macs2
         data = pd.read_csv(file, delimiter='\t', skiprows=1,
                            header=None, usecols=[1, 2, 3, 4], index_col=2)
         if 'common' in file:
@@ -29,16 +33,20 @@ def readPeak(file):
         else:
             data.columns = ['start', 'end', 'log10_likely']
         data.index.name = 'name'
-    if file.endswith('.tsv'):
+        # TODO Thresh
+    elif file.endswith('.tsv'):
         # peaks by comparing peak calling result
         if 'common_peaks' in file:
             cols = ['name', 'start', 'end', 'abs_summit',
                     'fold_enrichment_A', 'fold_enrichment_B']
         else:
-            cols = ['name', 'start', 'end', 'abs_summit', 'fold_enrichment']
+            cols = ['name', 'start', 'end', 'abs_summit','-LOG10(pvalue)', 'fold_enrichment']
         data = pd.read_csv(file, delimiter='\t',
                            usecols=cols,
                            index_col='name')
+        # TODO Thresh
+    else:
+        raise NameError
     data = data[~data.index.duplicated(keep='first')]
     return data
 
@@ -275,3 +283,13 @@ if __name__ == '__main__':
     #     pullPeakSequences(genomeFile, file, multiFilter=[
     #                       'fold', 'summit'], multiFilterMethods=[['min', 20], 170])
 
+
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-g', '--genome', help='genome file, fastta or genbank')
+    parser.add_argument('-f', '--files', nargs="+")
+
+    args = parser.parse_args()
+    genome = args.genome
+    files = args.files

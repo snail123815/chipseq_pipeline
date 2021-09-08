@@ -90,24 +90,29 @@ def readCoverage():
 # readCoverage
 
 
-def findSpan(genome, startOri, endOri):
+def getSpanFetures(genome, startOri, endOri, expand=20000):
     from Bio.SeqFeature import SeqFeature, FeatureLocation
     from math import ceil
-    expand = 20000  # find spanning feature in a slice
-    sourceSeq = genome[startOri - expand: endOri + expand]
-    start = expand
-    end = expand + (endOri - startOri)
+    newStart = max(0, startOri-expand)
+    newEnd = min(len(genome), endOri+expand)
+    sourceSeq = genome[newStart:newEnd]
+
+    start = startOri-newStart 
+    end = start + (endOri - startOri)
 
     spanFeats = []
     for feat in sourceSeq.features:
         spanStart = start in feat
         spanEnd = end in feat
+        # feat.__contains__(self, value)
+            #Check if an integer position is within the feature.
 
         spanFeat = SeqFeature(type=feat.type)
 
         if spanStart and spanEnd:
             # Target position is inside feature
             if feat.type == 'CDS':
+                # calculate correct start and end location to make it inframe
                 newStart = (3 - abs(start - feat.location.start)) % 3
                 newEnd = end - start - abs(end - feat.location.start) % 3
             else:
@@ -195,7 +200,7 @@ def findSpan(genome, startOri, endOri):
             continue
 
     return spanFeats
-# findSpan
+# getSpanFetures
 
 
 def peakLengthAtLoc(data, series):

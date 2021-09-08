@@ -8,7 +8,7 @@ from funcs import getSpanFetures
 import pandas as pd
 
 
-def readPeak(file, thresh=150):
+def readPeak(file, thresh=0):
     ''' Three kind of dataframe generated
     name, start, end, abs_summit, fold_enrichment
     name, start, end, abs_summit, fold_enrichment_A, fold_enrichment_B
@@ -87,7 +87,7 @@ def getSeq(sourceSeq, peakDict):
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
         futures = []
         for peak in peakDict:
-            future.append(executor.submit(slice, sourceSeq, peakDict, peak))
+            futures.append(executor.submit(slice, sourceSeq, peakDict[peak], peak))
         for future in concurrent.futures.as_completed(futures):
             sliceSeq = future.result()
             resultSeqs.append(sliceSeq)
@@ -95,52 +95,52 @@ def getSeq(sourceSeq, peakDict):
 # getSeq
 
 
-def singleFilter(filter, method):
+def singleFilter(filter, method, filename):
     if filter not in ['fold', 'length', 'summit', 'likely', None]:
         raise Exception(
             f"Filter error, {filter} ['fold', 'length', 'summit', 'likely', None]")
     print(f'Filtering: {filter} | {method}')
     if filter == 'fold':
-        # file ext in ['.tsv', '.xls']
+        # filename ext in ['.tsv', '.xls']
         if type(method) == list:
             # make sure the method returned by singleFilter() still a list
             subMethod = method[0]
         else:
             subMethod = method
-        if 'common' in file:
+        if 'common' in filename:
             if subMethod not in ['max', 'min']:
                 raise Exception(
-                    f"Method error. For {filter} in {file} you should use ['max', 'min'], \n while {subMethod} has been passed.")
+                    f"Method error. For {filter} in {filename} you should use ['max', 'min'], \n while {subMethod} has been passed.")
         else:
             if subMethod != 'single':
                 raise Exception(
-                    f"Method error. For {filter} in {file} you should use ['single'], \n while {subMethod} has been passed.")
-        from fucs import filterFoldEnrichment as filterFunction
+                    f"Method error. For {filter} in {filename} you should use ['single'], \n while {subMethod} has been passed.")
+        from funcs import filterFoldEnrichment as filterFunction
 
     elif filter == 'length':
         if method == None:
             method = [300, 500]
         elif method not in ['dist', 'polyfit'] and type(method) != list:
             raise Exception(
-                f"Method error. For {filter} in {file} you should use one of ['dist','polyfit', [min, max]], \n while {method} has been passed.")
-        from fucs import filterLength as filterFunction
+                f"Method error. For {filter} in {filename} you should use one of ['dist','polyfit', [min, max]], \n while {method} has been passed.")
+        from funcs import filterLength as filterFunction
 
     elif filter == 'summit':
         if method == None:
             method = 150
         elif type(method) != int:
             raise Exception(
-                f"Method error. For {filter} in {file} you should use integer (+- int around summit), \n while {method} has been passed.")
-        from fucs import evenLengthAroundSummit as filterFunction
+                f"Method error. For {filter} in {filename} you should use integer (+- int around summit), \n while {method} has been passed.")
+        from funcs import evenLengthAroundSummit as filterFunction
 
     elif filter == 'likely':
         if type(method) not in [int, float]:
             raise Exception(
-                f"Method error. For {filter} in {file} you should use a number, not {method}")
-        from fucs import filterLikely as filterFunction
+                f"Method error. For {filter} in {filename} you should use a number, not {method}")
+        from funcs import filterLikely as filterFunction
 
-    elif filter == None:
-        def filterFunction(df, method=method):
+    else:
+        def filterFunction(df, method=None):
             return df
 
     return filterFunction, method
@@ -152,32 +152,37 @@ def addTitle(filtered, title, filter, method):
     if type(method) == list:
         methodIsList = True
         method = '_'.join([str(i) for i in method])
-    title = f"{title}_{filter}_{method}"
-    if filter == 'length' and method in ['dist', 'polyfit']:
+        title = f"{title}_{filter}_{method}"
+    elif filter == 'length' and method in ['dist', 'polyfit']:
         minLenght = int(filtered.length.min())
         maxLength = int(filtered.length.max())
         title = f"{title}_{minLenght}_{maxLength}"
-    if filter == 'fold' and not methodIsList:
+    elif filter == 'fold' and not methodIsList:
         threshFold = int(filtered.fold_enrichment.min())
         title = f"{title}_{threshFold}"
+    else:
+        raise NameError(f'Non-supported filter {filter}, method {method}')
     return title
 # addTitle
 
+# Main function:
+def pullPeakSequences(genomeFile, file, 
+                      filter=None, method=None, 
+                      multiFilter=False, multiFilterMethods=None):
 
-def pullPeakSequences(genomeFile, file, filter=None, method=None, multiFilter=False, multiFilterMethods=None):
     title = os.path.splitext(file.split('/')[-1])[0]
     peakDF = readPeak(file)
     print('*' * 100)
     print(file)
 
-    if multiFilter != False:
+    if not multiFilter:
         filtered = peakDF.copy()
         for i, filter in enumerate(multiFilter):
             filterFunction, method = singleFilter(
-                filter=filter, method=multiFilterMethods[i])
+                filter=filter, method=multiFilterMethods[i], filename=file)
             filtered = filterFunction(filtered, method=method)
     else:
-        filterFunction, method = singleFilter(filter=filter, method=method)
+        filterFunction, method = singleFilter(filter=filter, method=method, filename=file)
         filtered = filterFunction(peakDF, method=method)
     if len(filtered.index) <= 10:
         print(f'Only {len(filtered.index)} peaks left, skip.')
@@ -246,52 +251,29 @@ files = [
 ]
 
 if __name__ == '__main__':
-    genomeFile = '/Users/durand.dc/Documents/works/Resources/Genomes_Info/Streptomyces_coelicolor/M145.gb'
-    '''All defaults'''
-    # for file in files:
-    #     for ext in fileFilterMethod:
-    #         if file.endswith(ext):
-    #             filters = fileFilterMethod[ext]
-    #             for filter in filters:
-    #                 methodFilter = fileFilterMethod[ext][filter]
-    #                 methods = [filterMethod[filter][i] for i in methodFilter]
-    #                 if filter == 'none':
-    #                     filter = None
-    #                 for method in methods:
-    #                     pullPeakSequences(genomeFile, file, filter, method)
-
-    '''specifics'''
-    # pullPeakSequences(genomeFile, files[0], 'length', [180, 250])
-    # pullPeakSequences(genomeFile, files[1], 'length', [200, 270])
-    # pullPeakSequences(genomeFile, files[0], multiFilter=[
-    #                   'fold', 'summit'], multiFilterMethods=[['single', 20], 150])
-    # pullPeakSequences(genomeFile, files[1], multiFilter=[
-    #                   'fold', 'summit'], multiFilterMethods=[['single', 20], 170])
-    # for file in files[3:5] + files[6:8]:
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'fold', 'summit'], multiFilterMethods=[['single', 20], 170])
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'fold', 'summit'], multiFilterMethods=[['single', 5], 170])
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'fold', 'summit'], multiFilterMethods=[['single', 10], 170])
-    # for file in [files[8], files[11]]:
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'length', 'likely'], multiFilterMethods=[[200, 400], 1])
-    #     pullPeakSequences(genomeFile, file, 'length', [200, 400])
-    # for file in files[9:11] + files[12:]:
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'length', 'likely'], multiFilterMethods=[[200, 400], 100])
-    # for file in [files[2], files[5]]:
-    #     pullPeakSequences(genomeFile, file, multiFilter=[
-    #                       'fold', 'summit'], multiFilterMethods=[['min', 20], 170])
-
-
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--genome', help='genome file, fastta or genbank')
     parser.add_argument('-f', '--files', nargs="+")
+    parser.add_argument('--filter', help='''
+    filter method, use one of the keys of dict
+    filterMethod = {'fold': ['single', 'min', 'max'],
+                    'length': [[300, 500], 'dist', 'polyfit'],
+                    'summit': [150],
+                    'likely': [1, 100],
+                    'none': [None]}
+     ''')
+
+    parser.add_argument('--likely', help='threshold for filter "likely"')
+    
+
 
     args = parser.parse_args()
     genome = args.genome
     files = args.files
+    fm = args.filter
+    fmlikely = args.likely
+    
+    for file in files:
+        pullPeakSequences(genome, file, filter=fm, method=fmlikely)

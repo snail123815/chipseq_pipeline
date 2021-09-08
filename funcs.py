@@ -338,7 +338,7 @@ def evenLengthAroundSummit(peakDF, method):
 
 
 def filterLikely(peakDF, method):
-    thresh = method
+    thresh = float(method)
     if 'likely_difference' in peakDF.columns:
         if thresh >= 10:
             raise Exception(
@@ -349,6 +349,12 @@ def filterLikely(peakDF, method):
             raise Exception(
                 'Threshold error, for unique peaks, the value should be the bigger the better, set up a big value >=10')
         filtered = peakDF.query('log10_likely >= @thresh')
+    elif '-LOG10(pvalue)' in peakDF.columns:
+        if thresh < 10:
+            raise Exception(
+                'Threshold error, for peaks, the value should be the bigger the better, set up a big value >=10')
+        filtered = peakDF.query('-LOG10(pvalue) >= @thresh')
+        
     else:
         raise Exception(
             f'Likely filter failed for this data frame with header\n{peakDF.columns}')

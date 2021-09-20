@@ -4,8 +4,8 @@
 #SBATCH --error=slurm.err
 #SBATCH --ntasks=16
 #SBATCH --mem=8G
-#SBATCH --partition=testing
-#SBATCH --time=01:00:00
+#SBATCH --partition=cpu-short
+#SBATCH --time=03:00:00
 #SBATCH --mail-user="c.du@biology.leidenuniv.nl"
 #SBATCH --mail-type="ALL"
 
@@ -19,7 +19,7 @@ SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
 
 # Make conda avaliable. If you don't have conda installed in your
 # own dir, try use "module load Miniconda3"
-#BASHRC=/home/duc/.bashrc
+BASHRC=/home/duc/.bashrc
 
 OUTDIRSAM=alignmentSAM
 OUTDIRBAM=alignmentBAM # this will be actually copied back to SOURCEDIR. 
@@ -42,13 +42,13 @@ export LC_ALL=en_US.UTF-8
 # Assign CWD, not required for this task
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
-#source $BASHRC
-module load Miniconda3/4.7.10
+source $BASHRC
 
 
 # Enter the designed environment
 echo "[$SHELL] Activate shortReads conda env"
 conda activate /data/projects/pi-vriesendorpb/tools/anaconda3/envs/shortReads
+# This activation will not work with testing node?
 
 # SCRATCH = fast IO location in /scratchdata
 # Copy between Scratch-shared to Local scratch (SCRATCH) is very fast.

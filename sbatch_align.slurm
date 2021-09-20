@@ -19,7 +19,7 @@ SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
 
 # Make conda avaliable. If you don't have conda installed in your
 # own dir, try use "module load Miniconda3"
-BASHRC=/hoem/duc/.bashrc
+BASHRC=/home/duc/.bashrc
 
 OUTDIRSAM=alignmentSAM
 OUTDIRBAM=alignmentBAM # this will be actually copied back to SOURCEDIR. 

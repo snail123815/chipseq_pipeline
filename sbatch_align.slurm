@@ -66,10 +66,9 @@ cd $RUNDIR
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 
 echo "[$SHELL] run alignment."
+CMD="python align_to_genome.py -r $RAWREADS -g $GENOME -o $OUTDIRSAM -p $NCPU"
 if [ $ISPE -eq 1 ]; then
-CMD="python align_to_genome.py -r  -g $GENOME -o $OUTDIRSAM -p $NCPU -pe"
-else
-CMD="python align_to_genome.py -r  -g $GENOME -o $OUTDIRSAM -p $NCPU"
+CMD+=" -pe"
 fi
 echo "[$SHELL] $CMD"
 eval "$CMD" 

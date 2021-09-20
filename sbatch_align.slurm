@@ -4,8 +4,8 @@
 #SBATCH --error=slurm.err
 #SBATCH --ntasks=16
 #SBATCH --mem=8G
-#SBATCH --partition=cpu-medium
-#SBATCH --time=06:00:00
+#SBATCH --partition=testing
+#SBATCH --time=01:00:00
 #SBATCH --mail-user="c.du@biology.leidenuniv.nl"
 #SBATCH --mail-type="ALL"
 

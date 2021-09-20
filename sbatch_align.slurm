@@ -13,13 +13,13 @@ NCPU=16
 SOURCEDIR=/home/duc/data/sco1447_chipseq
 RAWREADS=raw_reads
 GENOME=M145.fa
-ISPE=1
+ISPE="-pe"
 
 SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
 
 # Make conda avaliable. If you don't have conda installed in your
 # own dir, try use "module load Miniconda3"
-source /home/duc/.bashrc 
+BASHRC=/hoem/duc/.bashrc
 
 OUTDIRSAM=alignmentSAM
 OUTDIRBAM=alignmentBAM # this will be actually copied back to SOURCEDIR. 
@@ -42,6 +42,7 @@ export LC_ALL=en_US.UTF-8
 # Assign CWD, not required for this task
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
+source $BASHRC
 
 
 # Enter the designed environment
@@ -66,10 +67,7 @@ cd $RUNDIR
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 
 echo "[$SHELL] run alignment."
-CMD="python align_to_genome.py -r $RAWREADS -g $GENOME -o $OUTDIRSAM -p $NCPU"
-if [ $ISPE -eq 1 ]; then
-CMD+=" -pe"
-fi
+CMD="python align_to_genome.py -r $RAWREADS -g $GENOME -o $OUTDIRSAM -p $NCPU $ISPE"
 echo "[$SHELL] $CMD"
 eval "$CMD" 
 
@@ -77,7 +75,7 @@ echo "[$SHELL] done"
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 
 echo "[$SHELL] run indexing"
-CMD="python processsSam2Bam.py -p $OUTDIRSAM -o $OUTDIRBAM -t $NCPU"
+CMD="python processSam2Bam.py -p $OUTDIRSAM -o $OUTDIRBAM -t $NCPU"
 echo "[$SHELL] $CMD"
 eval "$CMD" 
 

@@ -41,7 +41,7 @@ if not doneidx:
             capture_output = True
             )
     if not p.returncode==0:
-        raise
+        raise RuntimeError
 
 
 if not os.path.isdir(samOutDir):

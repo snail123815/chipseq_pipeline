@@ -9,6 +9,22 @@
 #SBATCH --mail-user="c.du@biology.leidenuniv.nl"
 #SBATCH --mail-type="ALL"
 
+NCPU=16
+SOURCEDIR=/home/duc/data/sco1447_chipseq
+RAWREADS=raw_reads
+GENOME=M145.fa
+ISPE=1
+
+SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
+
+# Make conda avaliable. If you don't have conda installed in your
+# own dir, try use "module load Miniconda3"
+source /home/duc/.bashrc 
+
+OUTDIRSAM=alignmentSAM
+OUTDIRBAM=alignmentBAM # this will be actually copied back to SOURCEDIR. 
+
+# ===========================================================================================
 # Adding [$SHELL] will give distinction between echo and script output
 echo "[$SHELL] #### Starting Job"
 # The SLURM_JOB_USER and SLURM_JOB_ID is automatically obtained from sbatch command
@@ -27,54 +43,50 @@ export LC_ALL=en_US.UTF-8
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
 
-source /home/duc/.bashrc
 
 # Enter the designed environment
-echo "[$SHELL] Activate rnaseq"
-conda activate rnaseq
-module load SAMtools/1.10-GCC-8.3.0
+echo "[$SHELL] Activate shortReads conda env"
+conda activate /data/projects/pi-vriesendorpb/tools/anaconda3/envs/shortReads
 
 # SCRATCH = fast IO location in /scratchdata
 # Copy between Scratch-shared to Local scratch (SCRATCH) is very fast.
 # (seconds for 1 GB)
 SCRATCH=/scratchdata/${SLURM_JOB_USER}/${SLURM_JOB_ID} # fresh for every job
 echo "[$SHELL] Node scratch: "$SCRATCH
-export RUNDIR=$SCRATCH/duc_chipanalysis
+RUNDIR=$SCRATCH/chipanalysis
 mkdir $RUNDIR
 echo "[$SHELL] Run directory: "$RUNDIR
 
-echo "[$SHELL] Copy file to run directory."
-SOURCEDIR=/home/duc/data/sco1447_chipseq
-OUTDIRSAM=alignmentSAM
-cp -r $SOURCEDIR/raw_reads $RUNDIR/
-cp -r $SOURCEDIR/M145.fa* $RUNDIR/
-cp $SOURCEDIR/align_to_genome.py $RUNDIR/
-cp $SOURCEDIR/processSam2Bam.py $RUNDIR/
+echo "[$SHELL] Copy files to run directory."
+cp -r $SOURCEDIR/$RAWREADS $RUNDIR/
+cp $SOURCEDIR/$GENOME $RUNDIR/
+cp $SCRIPTDIR/align_to_genome.py $RUNDIR/
+cp $SCRIPTDIR/processSam2Bam.py $RUNDIR/
 cd $RUNDIR
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 
 echo "[$SHELL] run alignment."
-echo "[$SHELL] python align_to_genome.py -r raw_reads -g M145.fa -o $OUTDIRSAM -p 8 -pe"
-python align_to_genome.py -r raw_reads -g M145.fa -o $OUTDIRSAM -p 16 -pe  
+if [ $ISPE -eq 1 ]; then
+CMD="python align_to_genome.py -r  -g $GENOME -o $OUTDIRSAM -p $NCPU -pe"
+else
+CMD="python align_to_genome.py -r  -g $GENOME -o $OUTDIRSAM -p $NCPU"
+fi
+echo "[$SHELL] $CMD"
+eval "$CMD" 
 
 echo "[$SHELL] done"
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
-echo "[$SHELL] copy result back"
-
-cp -r $RUNDIR/$OUTDIR $SOURCEDIR/
-echo "[$SHELL] done"
-echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
-OUTDIRBAM=alignmentBAM
 
 echo "[$SHELL] run indexing"
-echo "[$SHELL] python processsSam2Bam.py -p $OUTDIRSAM -o $OUTDIRBAM -t 8" 
-python processsSam2Bam.py -p $OUTDIRSAM -o $OUTDIRBAM -t 8
+CMD="python processsSam2Bam.py -p $OUTDIRSAM -o $OUTDIRBAM -t $NCPU"
+echo "[$SHELL] $CMD"
+eval "$CMD" 
 
 echo "[$SHELL] done"
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 echo "[$SHELL] copy result back"
 
-cp -r $RUNDIR/$OUTDIR $SOURCEDIR/
+cp -r $RUNDIR/$OUTDIRBAM $SOURCEDIR/
 echo "[$SHELL] done"
 echo "[$SHELL] Time elaspsed: $(date -ud "@$(($(date +%s) - $START_TIME))" +%T) (HH:MM:SS)"
 

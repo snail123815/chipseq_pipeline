@@ -43,7 +43,7 @@ export LC_ALL=en_US.UTF-8
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
 #source $BASHRC
-module load Miniconda3
+module load Miniconda3/4.7.10
 
 
 # Enter the designed environment

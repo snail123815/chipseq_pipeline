@@ -11,15 +11,15 @@
 
 NCPU=16
 SOURCEDIR=/home/duc/data/sco1447_chipseq
-RAWREADS=raw_reads
-GENOME=M145.fa
+RAWREADS=raw_reads # dir in source dir
+GENOME=M145.fa # file in source dir
 ISPE="-pe"
 
 SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
 
 # Make conda avaliable. If you don't have conda installed in your
 # own dir, try use "module load Miniconda3"
-BASHRC=/home/duc/.bashrc
+#BASHRC=/home/duc/.bashrc
 
 OUTDIRSAM=alignmentSAM
 OUTDIRBAM=alignmentBAM # this will be actually copied back to SOURCEDIR. 
@@ -42,7 +42,8 @@ export LC_ALL=en_US.UTF-8
 # Assign CWD, not required for this task
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
-source $BASHRC
+#source $BASHRC
+module load Miniconda3
 
 
 # Enter the designed environment

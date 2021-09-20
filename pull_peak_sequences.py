@@ -241,22 +241,6 @@ fileFilterMethod = {'.xls': {'fold': [0], 'length': [0, 1, 2], 'summit': [0], 'n
                     'cond1.bed': {'length': [0], 'likely': [1], 'none': [0]},
                     'cond2.bed': {'length': [0], 'likely': [1], 'none': [0]},
                     }
-files = [
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/ChIP-25h_keepDup_model/ChIP-25h_peaks.xls',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/ChIP-48h_keepDup_model/ChIP-48h_peaks.xls',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/25-48_common_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/25-48_25_uniq_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/25-48_48_uniq_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/48-25_common_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/48-25_25_uniq_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks/48-25_48_uniq_peaks.tsv',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c3.0_common.bed',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c3.0_cond1.bed',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c3.0_cond2.bed',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c5.0_common.bed',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c5.0_cond1.bed',
-    '/Users/durand.dc/Desktop/ChIP1839/peak_calling/diff_peaks_macs2/25-48_c5.0_cond2.bed',
-]
 
 if __name__ == '__main__':
     import argparse

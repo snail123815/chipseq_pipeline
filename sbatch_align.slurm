@@ -1,16 +1,20 @@
 #!/bin/bash
 #SBATCH --job-name=align
-#SBATCH --output=slurm.out
-#SBATCH --error=slurm.err
+#SBATCH --output=align.out
+#SBATCH --error=align.err
 #SBATCH --ntasks=16
 #SBATCH --mem=8G
 #SBATCH --partition=cpu-short
 #SBATCH --time=03:00:00
-#SBATCH --mail-user="c.du@biology.leidenuniv.nl"
-#SBATCH --mail-type="ALL"
 
+# ============================================================================================
+CONDA=micromamba # use CONDA=conda when you have your conda directly in your .bashrc.
+ 		 # directly using "alias conda=micromamba" in .bashrc do not work with testing Node
+		 # maybe because the testing Node is running as combined node by default.
+		 # eg: nodelogin[01-02]
+		 # setting #SBATCH --nodes=1 should address this problem
 NCPU=16
-SOURCEDIR=/home/duc/data/sco1447_chipseq
+SOURCEDIR=/path/to/sourcedir/with/rawreads/dir/and/genome/file
 RAWREADS=raw_reads # dir in source dir
 GENOME=M145.fa # file in source dir
 ISPE="-pe"
@@ -42,13 +46,12 @@ export LC_ALL=en_US.UTF-8
 # Assign CWD, not required for this task
 export CWD=$(pwd)
 echo "[$SHELL] CWD: "$CWD
-source $BASHRC
 
 
 # Enter the designed environment
 echo "[$SHELL] Activate shortReads conda env"
-conda activate /data/projects/pi-vriesendorpb/tools/anaconda3/envs/shortReads
-# This activation will not work with testing node?
+source $BASHRC
+$CONDA activate /data/projects/pi-vriesendorpb/tools/anaconda3/envs/shortReads
 
 # SCRATCH = fast IO location in /scratchdata
 # Copy between Scratch-shared to Local scratch (SCRATCH) is very fast.

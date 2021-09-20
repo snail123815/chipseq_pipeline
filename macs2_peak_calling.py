@@ -58,9 +58,10 @@ def readComps(compFile, bamPath):
     M24 M24C_M24C.sam   M24E_M24E.sam
     M48 M48C_M48C.sam   M48E_M48E.sam
 
-    experimentDict = {
-        'exp1': {'exp':'filePathA', 'ctr':'filePathB'}
-        'exp2': {'exp':'filePathC', 'ctr':'filePathD'}
+    return:
+        experimentDict = {
+            'exp1': {'exp':'filePathA', 'ctr':'filePathB'}
+            'exp2': {'exp':'filePathC', 'ctr':'filePathD'}
         }
 
 

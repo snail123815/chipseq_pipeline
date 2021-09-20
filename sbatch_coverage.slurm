@@ -1,17 +1,17 @@
 #!/bin/bash
 #SBATCH --job-name=bamcoverage
-#SBATCH --output=slurm.coverage.out
-#SBATCH --error=slurm.coverage.err
+#SBATCH --output=coverage.out
+#SBATCH --error=coverage.err
 #SBATCH --ntasks=1
-#SBATCH --mem=60G
+#SBATCH --mem=10G
 #SBATCH --partition=cpu-medium
 #SBATCH --time=06:00:00
 #SBATCH --mail-user="c.du@biology.leidenuniv.nl"
 #SBATCH --mail-type="ALL"
 
-SOURCEDIR=/home/duc/data/sco1447_chipseq
+SOURCEDIR=/path/to/sourcedir/with/aligned/BAM/dir
 INDIR=alignmentBAM
-OUTFILE=coverage.tsv
+OUTFILE=coverage.tsv # will be put back in SOURCEDIR
 SCRIPTDIR=/data/projects/pi-vriesendorpb/duc/chipseq_pipeline
 
 # Make conda avaliable. If you don't have conda installed in your
